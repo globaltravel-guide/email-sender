@@ -2,6 +2,22 @@ name: Send Store Promotion Mail
 
 on:
   workflow_dispatch:
+    inputs:
+      recipient_emails:
+        description: 'রিসিভারদের ইমেল (কমা দিয়ে একাধিক দিন)'
+        required: true
+        default: 'customer1@example.com, customer2@example.com'
+        type: string
+      subject:
+        description: 'ইমেল সাবজেক্ট'
+        required: true
+        default: 'আপনার স্টোরের স্পেশাল অফার!'
+        type: string
+      body:
+        description: 'ইমেল কন্টেন্ট বা মেসেজ'
+        required: true
+        default: 'আমাদের স্টোর ভিজিট করুন এবং অফার উপভোগ করুন।'
+        type: string
 
 jobs:
   send-email:
@@ -19,5 +35,8 @@ jobs:
         env:
           MAIL_SERVER_PASSWORD: ${{ secrets.MAIL_SERVER_PASSWORD }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          INPUT_RECIPIENTS: ${{ github.event.inputs.recipient_emails }}
+          INPUT_SUBJECT: ${{ github.event.inputs.subject }}
+          INPUT_BODY: ${{ github.event.inputs.body }}
         run: |
           python send_mail.py
