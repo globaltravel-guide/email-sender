@@ -3,48 +3,35 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-# ইমেল কনফিগারেশন (গিটহাব সিক্রেট থেকে ভ্যালুগুলো রিড করবে)
+# গিটহাব সিক্রেট থেকে সেন্ডার ইনফো নেওয়া
 sender_email = os.environ.get("SENDER_EMAIL")
 sender_password = os.environ.get("MAIL_SERVER_PASSWORD")
 
-# SMTP সার্ভার সেটিংস (জিমেইলের ক্ষেত্রে এটি অপরিবর্তিত থাকবে)
+# গিটহাব ফর্ম (Workflow Input) থেকে ডাটাগুলো রিসিভ করা
+raw_recipients = os.environ.get(
+    "INPUT_RECIPIENTS", "customer1@example.com"
+)
+subject = os.environ.get("INPUT_SUBJECT", "Default Subject")
+body = os.environ.get("INPUT_BODY", "Default Body")
+
+# কমা দিয়ে আলাদা করা ইমেলগুলোকে লিস্টে রূপান্তর করা
+recipient_emails = [email.strip() for email in raw_recipients.split(",")]
+
+# SMTP সার্ভার কনফিগারেশন
 smtp_server = "smtp.gmail.com"
 smtp_port = 587
 
-# যাদের কাছে মেইল পাঠাবেন তাদের ইমেল লিস্ট (এখানে আপনার কাস্টমারদের ইমেলগুলো বসাবেন)
-recipient_emails = [
-    "customer1@example.com",
-    "customer2@example.com",
-    # আরও ইমেল লাগলে কমা দিয়ে এখানে যোগ করতে পারেন
-]
-
-# ইমেল সাবজেক্ট বা বিষয়
-subject = "আপনার কোম্পানির স্টোর প্রমোশন ও স্পেশাল অফার!"
-
-# ইমেল বডি বা মূল কন্টেন্ট (এখানে আপনার প্রচারণামূলক লেখা লিখবেন)
-body = """
-আসসালামু আলাইকুম / হ্যালো,
-
-আমাদের স্টোরের নতুন কালেকশন এবং দারুণ সব অফার এখন লাইভ! 
-আপনার পছন্দের পণ্যটি লুফে নিতে আজই ভিজিট করুন আমাদের স্টোরে।
-
-ধন্যবাদান্তে,
-আপনার কোম্পানি
-"""
-
-# লুপ চালিয়ে একে একে সবার কাছে মেইল পাঠানো
+# লूप চালিয়ে একে একে সবার কাছে মেইল পাঠানো
 for receiver_email in recipient_emails:
+  if not receiver_email:
+    continue
   try:
-    # মেইল অবজেক্ট তৈরি
     message = MIMEMultipart()
     message["From"] = sender_email
     message["To"] = receiver_email
     message["Subject"] = subject
-
-    # বডি যুক্ত করা
     message.attach(MIMEText(body, "plain"))
 
-    # সার্ভারের সাথে কানেক্ট করে মেইল শুট করা
     server = smtplib.SMTP(smtp_server, smtp_port)
     server.starttls()
     server.login(sender_email, sender_password)
